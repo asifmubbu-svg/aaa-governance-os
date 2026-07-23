@@ -11,7 +11,9 @@ services:
     healthCheckPath: /healthz
     autoDeploy: true
     envVars:
-      # Neon connection string - paste your own value in the Render dashboard.
+      - key: NODE_ENV
+        value: production
+      # Postgres connection string (Supabase Session pooler / Neon) - set in dashboard.
       - key: DATABASE_URL
         sync: false
       # JWT secret - Render generates a strong random value automatically.
@@ -20,3 +22,9 @@ services:
       # Seeded demo-account password - set your own in the dashboard.
       - key: GOV_DEFAULT_PASSWORD
         sync: false
+      # AI assistant (Groq). Free key from console.groq.com. Optional - the app
+      # runs in grounded search mode without it.
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GROQ_MODEL
+        value: openai/gpt-oss-120b

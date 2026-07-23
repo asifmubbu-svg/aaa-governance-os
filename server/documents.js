@@ -1,6 +1,7 @@
 // Controlled-document lifecycle: immutable version snapshots + configurable workflow engine.
 const { store, meta } = require('./store');
 const { rank, RANK } = require('./auth');
+const auditLog = require('./audit');
 
 const now = () => new Date().toISOString();
 const today = () => new Date().toISOString().slice(0, 10);
@@ -26,7 +27,7 @@ function snapshotFields(doc) {
   };
 }
 function verStr(doc) { return `${doc.major || 0}.${doc.minor || 0}`; }
-async function audit(user, action, doc) { await store.add('auditEvents', { actor: user.name, action, target: doc.title, date: now(), entity: doc.entity || 'AAA Holding' }); }
+async function audit(user, action, doc) { await auditLog.append({ actor: user.name, action, target: doc.title, date: now(), entity: doc.entity || 'AAA Holding' }); }
 function pushHistory(doc, entry) { doc.workflow = doc.workflow || { stageIndex: 0, stages: [], history: [] }; doc.workflow.history = doc.workflow.history || []; doc.workflow.history.push(entry); }
 
 // ---- actions ----

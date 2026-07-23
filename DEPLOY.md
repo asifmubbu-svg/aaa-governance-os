@@ -47,6 +47,28 @@ Use a seeded account, e.g. `asif@aaabed.com` with the `GOV_DEFAULT_PASSWORD` you
 
 ---
 
+## Optional: turn on the AI assistant (free)
+
+The Governance Smart Search page works as grounded search without AI. To enable
+model-generated answers:
+1. Get a free API key at https://console.groq.com (sign in, API Keys, Create).
+2. In Render → your service → Environment, add `GROQ_API_KEY` = your key.
+3. Save. Render redeploys. The assistant badge turns green and answers become
+   model-generated, grounded in your records with citations.
+
+The assistant only sends governance content (policies, risks, requirements,
+processes, DOA) to Groq - never the employee directory or personal data. If Groq
+deprecates the default model, change `GROQ_MODEL` in Render (no code change).
+
+## Security notes
+
+Hardened for public hosting: HTTPS-only secure cookies, HSTS and security headers
+(helmet), login rate-limiting (brute-force protection), cross-origin request
+blocking (CSRF), server-set audit actor, and a tamper-evident audit log (hash-chained;
+Admins can check integrity at `/api/audit/verify`). `GOV_SECRET` is auto-generated
+on Render. Still recommended for a hardening pass later: SSO (Entra), per-user MFA,
+and moving the audit-integrity check into the UI.
+
 ## Updating the live site (the seamless part)
 
 Any time you want to publish changes:

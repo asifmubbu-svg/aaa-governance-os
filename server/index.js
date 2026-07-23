@@ -1,16 +1,39 @@
 const path = require('path');
 const express = require('express');
 const cookieParser = require('cookie-parser');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 const { store, meta, users, ready } = require('./store');
 const auth = require('./auth');
+const ai = require('./ai');
+const auditLog = require('./audit');
 const { seedAll, RECORD_COLLECTIONS } = require('./seed');
 
 const ROOT = path.join(__dirname, '..');
 const PORT = process.env.PORT || 4000;
 
 const app = express();
+app.set('trust proxy', 1); // behind Render's TLS proxy: needed for secure cookies + real client IP
+// Security headers (HSTS, no-sniff, frameguard, etc.). CSP is disabled because the
+// SPA loads local ES modules and a CDN; other protections stay on.
+app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false }));
 app.use(express.json({ limit: '2mb' }));
 app.use(cookieParser());
+
+// CSRF defence for cookie-auth: reject cross-origin state-changing requests.
+// Browsers always send Origin on fetch; same-origin passes, other origins are blocked.
+app.use('/api', (req, res, next) => {
+  if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(req.method)) {
+    const src = req.get('origin') || req.get('referer');
+    if (src) { try { if (new URL(src).host !== req.get('host')) return res.status(403).json({ error: 'Cross-origin request blocked' }); } catch (e) {} }
+  }
+  next();
+});
+
+// Rate limiting: strict on login (brute-force), generous on the rest of the API.
+const loginLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 20, standardHeaders: true, legacyHeaders: false, message: { error: 'Too many login attempts, try again later' } });
+const apiLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 800, standardHeaders: true, legacyHeaders: false });
+app.use('/api', apiLimiter);
 
 // collections that any authenticated user (incl. Viewer) may append to
 const APPEND_ANY = new Set(['acknowledgments', 'auditEvents']);
@@ -20,7 +43,7 @@ const WRITABLE = new Set([...RECORD_COLLECTIONS, 'acknowledgments', 'forms']);
 app.get('/healthz', (req, res) => res.json({ ok: true }));
 
 // ---------------- auth ----------------
-app.post('/api/login', async (req, res) => {
+app.post('/api/login', loginLimiter, async (req, res) => {
   const { email, password } = req.body || {};
   const u = await auth.login(email, password);
   if (!u) return res.status(401).json({ error: 'Invalid email or password' });
@@ -59,6 +82,19 @@ app.post('/api/documents/:id/cancel',   auth.requireAuth, docAction((d,u)=> docs
 app.post('/api/documents/:id/withdraw', auth.requireAuth, docAction((d,u,b)=> docs.withdraw(d,u,b.comment)));
 app.post('/api/documents/:id/rollback', auth.requireAuth, docAction((d,u,b)=> docs.rollback(d,u,b.version)));
 
+// ---------------- AI assistant (grounded, Groq) ----------------
+// NOTE: must be registered before the generic /api/:collection routes below.
+app.get('/api/ai/status', auth.requireAuth, (req, res) => res.json({ configured: ai.isConfigured(), model: ai.MODEL }));
+app.post('/api/ai/ask', auth.requireAuth, async (req, res) => {
+  const q = ((req.body && req.body.question) || '').trim();
+  if (!q) return res.status(400).json({ error: 'question required' });
+  try { res.json(await ai.ask(q)); }
+  catch (e) { res.status(502).json({ error: e.message || 'AI request failed' }); }
+});
+
+// ---------------- audit integrity ----------------
+app.get('/api/audit/verify', auth.requireAuth, auth.requireRole('Admin'), async (req, res) => res.json(await auditLog.verify()));
+
 // ---------------- generic collection API ----------------
 app.get('/api/:collection', auth.requireAuth, async (req, res) => {
   res.json(await store.all(req.params.collection));
@@ -81,8 +117,11 @@ app.post('/api/:collection', auth.requireAuth, async (req, res) => {
   const c = req.params.collection;
   if (!canWrite(req, res, c)) return;
   const body = { ...req.body };
-  if (c === 'auditEvents') body.actor = req.user.name;          // integrity: server sets actor
   if (c === 'acknowledgments') body.user = body.user || req.user.name;
+  if (c === 'auditEvents') {                                    // integrity: server sets actor + hash-chains
+    body.actor = req.user.name;
+    return res.status(201).json(await auditLog.append(body));
+  }
   res.status(201).json(await store.add(c, body));
 });
 

@@ -16,6 +16,7 @@ export async function renderAdmin(c){
     <button class="chip active" data-t="types">Document types</button>
     <button class="chip" data-t="workflows">Statuses & workflows</button>
     <button class="chip" data-t="ref">Reference data</button>
+    ${isAdmin?'<button class="chip" data-t="audit">Audit integrity</button>':''}
   </div>
   <div id="admin-body"></div>`;
   const body = document.getElementById('admin-body');
@@ -24,7 +25,25 @@ export async function renderAdmin(c){
   function draw(){
     if(tab==='types') drawTypes();
     else if(tab==='workflows') drawWorkflows();
+    else if(tab==='audit') drawAudit();
     else drawRef();
+  }
+  function drawAudit(){
+    body.innerHTML=`<div class="card pad">
+      <b>Tamper-evident audit log</b>
+      <p class="muted" style="font-size:12.5px;margin-top:6px">Every workflow audit event is hash-chained to the one before it. Verifying recomputes the whole chain; any event that was edited or deleted breaks it and is pinpointed below.</p>
+      <button class="btn primary" id="verify">${ICON('shield',14)} Verify integrity</button>
+      <div id="vres" style="margin-top:12px"></div>
+    </div>`;
+    document.getElementById('verify').onclick=async()=>{
+      const el=document.getElementById('vres'); el.innerHTML='<span class="muted">Checking…</span>';
+      try{
+        const r=await DB.verifyAudit();
+        el.innerHTML = r.ok
+          ? `<div class="note-banner">${ICON('check',14)} <span class="badge b-green">Intact</span> Audit chain verified — ${r.count} chained event(s), no tampering detected.</div>`
+          : `<div class="note-banner">${ICON('alert',14)} <span class="badge b-red">Broken</span> Chain integrity failed at event #${r.brokenAtSeq}${r.action?` ('${H.esc(r.action)}' by ${H.esc(r.actor||'unknown')})`:''}. That event or an earlier one was altered.</div>`;
+      }catch(e){ el.innerHTML=`<span class="badge b-red">Error</span> <span class="muted">${H.esc(e.message||'verification failed')}</span>`; }
+    };
   }
   function drawTypes(){
     body.innerHTML = `

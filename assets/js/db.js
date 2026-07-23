@@ -77,3 +77,8 @@ export async function saveConfig(c){ await req('PUT','/api/config', c); _config 
 
 // ---- admin ----
 export async function resetAll(){ return req('POST','/api/admin/reset'); }
+
+// ---- AI assistant ----
+export async function aiStatus(){ try{ return await req('GET','/api/ai/status'); }catch(e){ return { configured:false }; } }
+export async function aiAsk(question){ return req('POST','/api/ai/ask',{ question }); }
+export async function verifyAudit(){ return req('GET','/api/audit/verify'); }

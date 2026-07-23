@@ -16,7 +16,8 @@ async function login(email, password){
 }
 
 function setCookie(res, token){
-  res.cookie(COOKIE, token, { httpOnly: true, sameSite: 'lax', maxAge: 12*3600*1000 });
+  const secure = process.env.NODE_ENV === 'production';
+  res.cookie(COOKIE, token, { httpOnly: true, sameSite: 'lax', secure, maxAge: 12*3600*1000 });
 }
 function clearCookie(res){ res.clearCookie(COOKIE); }
 
