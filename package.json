@@ -1,0 +1,21 @@
+{
+  "name": "governance-os",
+  "version": "1.0.0",
+  "private": true,
+  "type": "commonjs",
+  "description": "Governance OS — full-stack governance & compliance platform for Ahmad A. Abed Holding",
+  "engines": {
+    "node": ">=22.5.0"
+  },
+  "scripts": {
+    "start": "node --experimental-sqlite server/index.js",
+    "seed": "node --experimental-sqlite server/seed.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.6",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.22.0"
+  }
+}

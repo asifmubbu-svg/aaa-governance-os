@@ -1,0 +1,22 @@
+# Render Blueprint - one-click infrastructure for Governance OS.
+# In Render: New > Blueprint, connect this repo, and it reads this file.
+services:
+  - type: web
+    name: aaa-governance-os
+    runtime: node
+    plan: free
+    branch: main
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /healthz
+    autoDeploy: true
+    envVars:
+      # Neon connection string - paste your own value in the Render dashboard.
+      - key: DATABASE_URL
+        sync: false
+      # JWT secret - Render generates a strong random value automatically.
+      - key: GOV_SECRET
+        generateValue: true
+      # Seeded demo-account password - set your own in the dashboard.
+      - key: GOV_DEFAULT_PASSWORD
+        sync: false
