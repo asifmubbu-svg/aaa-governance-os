@@ -43,7 +43,7 @@ git push -u origin main
 
 ### 4. Log in
 Use a seeded account, e.g. `asif@aaabed.com` with the `GOV_DEFAULT_PASSWORD` you set
-(default `AAA@govos2026`). Change passwords via Administration once in.
+(default `Admin@123`). Change passwords once in.
 
 ---
 

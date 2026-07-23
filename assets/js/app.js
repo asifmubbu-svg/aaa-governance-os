@@ -310,7 +310,7 @@ function renderLogin(msg){
       <div id="li-err" class="login-err"></div>
       <button class="btn primary" id="li-btn" type="submit" style="width:100%;justify-content:center">Sign in</button>
     </form>
-    <div class="login-hint">Demo accounts (password <b>AAA@govos2026</b>): <b>asif@aaabed.com</b> (Admin), <b>m.abed@aaabed.com</b> (Executive), <b>k.alduwayk@aaabed.com</b> (HOD), <b>author@aaabed.com</b> (Author), <b>viewer@aaabed.com</b> (Viewer)</div>
+    <div class="login-hint">Default admin: <b>asif@aaabed.com</b> · password <b>Admin@123</b>. Other accounts (same password): <b>m.abed@aaabed.com</b> (Executive), <b>k.alduwayk@aaabed.com</b> (HOD), <b>author@aaabed.com</b> (Author), <b>viewer@aaabed.com</b> (Viewer)</div>
   </div>`;
   if(msg) document.getElementById('li-err').textContent = msg;
   document.getElementById('login-form').onsubmit = async (e)=>{

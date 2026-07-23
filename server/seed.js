@@ -6,7 +6,7 @@ const { hash } = require('./auth');
 const DATA = path.join(__dirname, '..', 'assets', 'js', 'data');
 const RECORD_COLLECTIONS = ['employees','entities','domains','documents','changeRequests','approvals','announcements','auditEvents','capabilities','opportunities','raci','roles','vacancies','risks','controls','campaigns','processes','doa','positions','requirements','findings','evidenceRequests','regChanges','trainings','trainingRecords'];
 
-const DEFAULT_PASSWORD = process.env.GOV_DEFAULT_PASSWORD || 'AAA@govos2026';
+const DEFAULT_PASSWORD = process.env.GOV_DEFAULT_PASSWORD || 'Admin@123';
 const SEED_USERS = [
   { email: 'asif@aaabed.com',       name: 'Asif Ali',       role: 'Admin' },
   { email: 'm.abed@aaabed.com',     name: 'Mohanad Abed',   role: 'Executive' },
@@ -57,10 +57,19 @@ function buildConfig(){
 }
 
 async function seedUsers(){
-  if((await users.count()) > 0) return 0;
   const ph = hash(DEFAULT_PASSWORD);
-  for(const u of SEED_USERS) await users.add({ ...u, password_hash: ph });
-  return SEED_USERS.length;
+  if((await users.count()) === 0){
+    for(const u of SEED_USERS) await users.add({ ...u, password_hash: ph });
+    return SEED_USERS.length;
+  }
+  // One-time: reset the seeded accounts' passwords to the current DEFAULT_PASSWORD.
+  // Set RESET_SEED_PASSWORDS=true once, redeploy, then remove the flag.
+  if(process.env.RESET_SEED_PASSWORDS === 'true'){
+    let n = 0;
+    for(const u of SEED_USERS){ const ex = await users.byEmail(u.email); if(ex){ await users.setPassword(ex.id, ph); n++; } }
+    return n;
+  }
+  return 0;
 }
 
 async function seedData(force){
