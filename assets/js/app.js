@@ -1,5 +1,6 @@
 import * as DB from './db.js';
 import { ICON } from './icons.js';
+import { HELP } from './help.js';
 import { renderDashboard } from './modules/dashboard.js';
 import { renderRepository } from './modules/repository.js';
 import { renderOrganization } from './modules/organization.js';
@@ -252,6 +253,7 @@ function renderTopbar(){
     </div>
     <button class="tbtn" id="theme-toggle" title="Toggle theme">${ICON(state.settings.theme==='dark'?'sun':'moon')}</button>
     <button class="tbtn" id="lang-toggle" title="Toggle language">${state.settings.lang==='en'?'ع':'EN'}</button>
+    <button class="tbtn" id="help-btn" title="What is this page?">${ICON('help')}</button>
     <button class="tbtn" id="notif" title="Notifications">${ICON('bell')}<span class="dot" id="notif-count" style="display:none"></span></button>
     <div class="user-chip" title="${H.esc((state.user&&state.user.name)||'')} · ${H.esc((state.user&&state.user.role)||'')}">
       <div class="avatar">${H.initials((state.user&&state.user.name)||'?')}</div>
@@ -260,6 +262,7 @@ function renderTopbar(){
     <button class="tbtn" id="logout" title="Sign out">${ICON('key')}</button>`;
   document.getElementById('theme-toggle').onclick=toggleTheme;
   document.getElementById('lang-toggle').onclick=toggleLang;
+  document.getElementById('help-btn').onclick=openHelp;
   document.getElementById('notif').onclick=()=>go('#/notifications');
   document.getElementById('logout').onclick=async()=>{ await DB.logout(); location.reload(); };
   const qc=document.getElementById('quick-create'), qcm=document.getElementById('qc-menu');
@@ -276,6 +279,19 @@ function renderTopbar(){
     const sb=document.getElementById('sidebar');
     if(sb && !sb.contains(e.target) && !e.target.closest('#menu-toggle')) closeNav();
   });
+}
+
+function openHelp(){
+  const id = (location.hash.replace(/^#\/?/,'').split('/')[0]) || '';
+  const info = HELP[id] || HELP._default;
+  const look = navLookup(id);
+  const title = (look && look.item.label) || 'This page';
+  H.modal({ title:`About: ${title}`, body:`
+    <p class="mt0" style="font-size:14.5px;line-height:1.65">${H.esc(info.what)}</p>
+    ${info.use && info.use.length ? `<h4 style="margin:16px 0 6px;font-size:13px">What you can do here</h4><ul class="jd-list">${info.use.map(u=>`<li>${H.esc(u)}</li>`).join('')}</ul>` : ''}
+    ${info.tip ? `<div class="note-banner" style="margin-top:14px">${ICON('info',15)}<span>${H.esc(info.tip)}</span></div>` : ''}`,
+    footer:`<button class="btn primary" id="help-ok">Got it</button>` });
+  const ok=document.getElementById('help-ok'); if(ok) ok.onclick=H.closeModal;
 }
 
 async function toggleTheme(){
