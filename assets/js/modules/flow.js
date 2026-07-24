@@ -147,10 +147,11 @@ export async function renderProcesses(c){
   const withFlow = docs.filter(d=>d.flow && d.flow.length);
   const processes = docs.filter(d=>d.type==='Process' || d.type==='SOP');
   c.innerHTML=`
-  <div class="page-head"><div><div class="eyebrow">Knowledge Base</div><h1>Process Flows</h1>
-    <p>Design and govern business processes as flowcharts. Each step links to a role, an employee and a department — and drives the RACI matrix.</p></div>
+  <div class="page-head"><div><div class="eyebrow">Process & Operating Model</div><h1>Process Flows</h1>
+    <p>The step-by-step diagram of how a single process actually runs - the sequence of steps, decisions and hand-offs. View it top-to-bottom or as swimlanes by role. Each step drives the RACI matrix.</p></div>
     <div class="page-actions"><button class="btn primary" id="new">${ICON('plus')} New process</button></div>
   </div>
+  <div class="note-banner" style="margin-bottom:16px">${ICON('info',15)}<span><b>This is the recipe for how one process works, step by step.</b> To browse the full hierarchy of what processes exist and who owns them, open <span class="link" onclick="location.hash='#/process-arch'">Process Architecture</span>.</span></div>
   <div class="toolbar"><span class="muted">${withFlow.length} processes have a designed flow · ${processes.length} process/SOP artifacts</span></div>
   <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(300px,1fr))">
     ${processes.map(d=>`<div class="card pad clickable" data-id="${d.id}" style="cursor:pointer">

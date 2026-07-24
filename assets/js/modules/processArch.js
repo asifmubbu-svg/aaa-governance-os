@@ -15,9 +15,10 @@ export async function renderProcessArch(c){
 
   c.innerHTML=`
   <div class="page-head"><div><div class="eyebrow">Process & Operating Model</div><h1>Process Architecture</h1>
-    <p>The enterprise process hierarchy, Level 0 (value chain) down to Level 5 (forms and transactions). Each process links to its owner, roles, systems, risks, controls and a diagram.</p></div>
+    <p>The catalog of all your processes, organised from broad to detailed (Level 0 value chain down to Level 5 forms and transactions). Each entry records who owns it, its department, systems, risks and controls.</p></div>
     <div class="page-actions">${canEdit()?`<button class="btn primary" id="new">${ICON('plus')} New process</button>`:''}</div>
   </div>
+  <div class="note-banner" style="margin-bottom:16px">${ICON('info',15)}<span><b>This is the map of what processes exist and who owns them.</b> To see or draw the step-by-step diagram of how a single process runs, open <span class="link" onclick="location.hash='#/processes'">Process Flows</span>.</span></div>
   <div class="two-col">
     <div class="card pad"><b>Hierarchy</b><ul class="proc-tree" id="tree" style="margin-top:8px"></ul></div>
     <div id="detail"><div class="empty"><div class="ic">🗺️</div><p>Select a process to view its details and diagram.</p></div></div>
