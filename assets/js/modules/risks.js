@@ -18,6 +18,7 @@ export async function renderRisks(c){
     <p>${risks.length} risks and ${controls.length} controls, linked to policies and processes. Inherent vs residual rating using a 5×5 likelihood/impact model.</p></div>
     <div class="page-actions"><button class="btn primary" id="new">${ICON('plus')} New risk</button></div>
   </div>
+  <div class="note-banner" style="margin-bottom:16px">${ICON('info',15)}<span>A <b>risk</b> is something that could go wrong; a <b>control</b> is what you put in place to manage it. Each risk is scored likelihood × impact before controls (inherent) and after (residual) - the heatmap shows where your biggest exposures sit.</span></div>
   <div class="kpis" style="margin-bottom:16px">
     <div class="stat"><div class="v" style="color:var(--red)">${risks.filter(r=>r.residual==='Critical'||r.residual==='High').length}</div><div class="l">High / Critical (residual)</div></div>
     <div class="stat"><div class="v">${controls.length}</div><div class="l">Controls</div></div>

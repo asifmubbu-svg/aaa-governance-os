@@ -20,6 +20,7 @@ export async function renderRequirements(c){
     <p>Laws, regulations, ISO clauses, internal and contractual requirements — mapped to the policies, risks and controls that satisfy them.</p></div>
     <div class="page-actions">${canEdit()?`<button class="btn primary" id="new">${ICON('plus')} New requirement</button>`:''}</div>
   </div>
+  <div class="note-banner" style="margin-bottom:16px">${ICON('info',15)}<span>These are your <b>obligations</b> - the laws, regulations, ISO clauses, internal rules and contract terms you must meet. Each is marked Compliant, Partial or Gap and linked to the policies, risks and controls that satisfy it.</span></div>
   <div class="kpis" style="margin-bottom:16px">
     <div class="stat"><div class="v">${reqs.length}</div><div class="l">Requirements</div></div>
     <div class="stat"><div class="v" style="color:var(--green)">${pct('Compliant')}%</div><div class="l">Compliant</div></div>

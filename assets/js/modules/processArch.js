@@ -7,26 +7,49 @@ import { logAudit } from './repository.js';
 const me = ()=> (DB.getCurrentUser&&DB.getCurrentUser()?.role) || 'Viewer';
 const canEdit = ()=> ({Author:2,HOD:3,Executive:4,Admin:5}[me()]||0) >= 2;
 
+const LEVELS=[
+  ['L0','Value chain','The whole business end to end - the highest-level view of how value is created.'],
+  ['L1','Capability group','A major group of related processes, e.g. Source to Pay or Hire to Retire.'],
+  ['L2','Process','A complete end-to-end process, e.g. Procure-to-Pay or Order-to-Cash.'],
+  ['L3','Sub-process','A distinct stage within a process, e.g. Supplier Qualification.'],
+  ['L4','Procedure / SOP','The documented step-by-step way of carrying out a sub-process.'],
+  ['L5','Transaction / form','The individual form, record or transaction the work produces.'],
+];
+
 export async function renderProcessArch(c){
   const procs = await DB.getAll('processes');
   const domains = await DB.getAll('domains');
   const byParent={}; procs.forEach(p=>{ const k=p.parentId||'__root'; (byParent[k]=byParent[k]||[]).push(p); });
   const roots = byParent['__root']||[];
+  const cnt=(lv)=> procs.filter(p=>p.level===lv).length;
 
   c.innerHTML=`
   <div class="page-head"><div><div class="eyebrow">Process & Operating Model</div><h1>Process Architecture</h1>
-    <p>The catalog of all your processes, organised from broad to detailed (Level 0 value chain down to Level 5 forms and transactions). Each entry records who owns it, its department, systems, risks and controls.</p></div>
+    <p>The catalog of all your processes, arranged from broad to detailed across six levels (L0 value chain down to L5 forms). Each entry records who owns it, its domain, systems, risks and controls.</p></div>
     <div class="page-actions">${canEdit()?`<button class="btn primary" id="new">${ICON('plus')} New process</button>`:''}</div>
   </div>
   <div class="note-banner" style="margin-bottom:16px">${ICON('info',15)}<span><b>This is the map of what processes exist and who owns them.</b> To see or draw the step-by-step diagram of how a single process runs, open <span class="link" onclick="location.hash='#/processes'">Process Flows</span>.</span></div>
+  <div class="card pad" style="margin-bottom:16px">
+    <b>The six levels, explained</b>
+    <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-top:12px">
+      ${LEVELS.map(([code,name,desc])=>`<div class="flex gap" style="align-items:flex-start">
+        <span class="lvl ${code}" style="margin-top:2px;flex-shrink:0">${code}</span>
+        <div><div style="font-weight:700;font-size:12.5px">${H.esc(name)}</div><div class="muted" style="font-size:11.5px;line-height:1.4">${H.esc(desc)} · ${cnt(code)} here</div></div>
+      </div>`).join('')}
+    </div>
+  </div>
   <div class="two-col">
-    <div class="card pad"><b>Hierarchy</b><ul class="proc-tree" id="tree" style="margin-top:8px"></ul></div>
-    <div id="detail"><div class="empty"><div class="ic">🗺️</div><p>Select a process to view its details and diagram.</p></div></div>
+    <div class="card pad"><div class="flex between center"><b>Process hierarchy</b><span class="muted" style="font-size:12px">${procs.length} processes</span></div><ul class="proc-tree" id="tree" style="margin-top:10px"></ul></div>
+    <div id="detail"><div class="empty"><div class="ic">🗺️</div><p>Select a process in the hierarchy to view its full details and diagram.</p></div></div>
   </div>`;
 
   const node=(p)=>{ const kids=byParent[p.id]||[]; return `<li>
-    <div class="proc-node" data-id="${p._id}"><span class="lvl ${p.level}">${p.level}</span><b style="flex:1;font-size:13px">${H.esc(p.name)}</b>${kids.length?`<span class="muted" style="font-size:11px">${kids.length}</span>`:''}</div>
-    ${kids.length?`<ul>${kids.sort((a,b)=>a.level.localeCompare(b.level)).map(node).join('')}</ul>`:''}</li>`; };
+    <div class="proc-node" data-id="${p._id}" style="align-items:flex-start">
+      <span class="lvl ${p.level}" style="margin-top:1px">${p.level}</span>
+      <div style="flex:1;min-width:0"><b style="font-size:13px">${H.esc(p.name)}</b>${p.purpose?`<div class="muted" style="font-size:11px;line-height:1.35;margin-top:1px">${H.esc(p.purpose.slice(0,74))}${p.purpose.length>74?'…':''}</div>`:''}</div>
+      ${kids.length?`<span class="badge b-slate" style="font-size:10px;padding:2px 7px;align-self:flex-start">${kids.length}</span>`:''}
+    </div>
+    ${kids.length?`<ul>${kids.slice().sort((a,b)=>a.level.localeCompare(b.level)||a.name.localeCompare(b.name)).map(node).join('')}</ul>`:''}</li>`; };
   document.getElementById('tree').innerHTML = roots.map(node).join('') || '<div class="muted">No processes defined.</div>';
   c.querySelectorAll('.proc-node').forEach(el=> el.onclick=(e)=>{ e.stopPropagation(); openDetail(procs.find(x=>x._id===+el.dataset.id)); });
   if(document.getElementById('new')) document.getElementById('new').onclick=()=> editProcess(null, procs, domains, ()=>renderProcessArch(c));

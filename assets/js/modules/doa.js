@@ -16,6 +16,7 @@ export async function renderDOA(c){
     <p>Structured authority matrix — who can approve what, up to which limit, individually or jointly. ${doa.length} authorities across ${new Set(doa.map(d=>d.category)).size} categories.</p></div>
     <div class="page-actions">${canEdit()?`<button class="btn primary" id="new">${ICON('plus')} New authority</button>`:''}</div>
   </div>
+  <div class="note-banner" style="margin-bottom:16px">${ICON('info',15)}<span>This sets <b>who can approve what, and up to what amount</b>. Each line gives a role a value band (min-max in SAR) and says whether approval is individual or joint - so everyone knows their limit and when to escalate.</span></div>
   <div class="toolbar">
     <button class="chip ${tab==='register'?'active':''}" data-t="register">Register</button>
     <button class="chip ${tab==='matrix'?'active':''}" data-t="matrix">Authority matrix</button>
