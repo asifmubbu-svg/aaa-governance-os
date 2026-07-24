@@ -219,15 +219,20 @@ function renderSidebar(active){
     </div>`;
   }).join('');
   document.getElementById('sidebar').innerHTML=`
-    <div class="brand"><div class="logo">G</div><div><div class="bt">Governance OS</div><div class="bs">Ahmad A. Abed Holding</div></div></div>
+    <a class="brand" href="#/" title="Go to Command Center"><div class="logo">G</div><div><div class="bt">Governance OS</div><div class="bs">Ahmad A. Abed Holding</div></div></a>
     <div class="nav">${nav}</div>`;
   document.querySelectorAll('.nav-ws-head').forEach(b=> b.onclick=()=> b.closest('.nav-ws').classList.toggle('open'));
+  // mobile: close the drawer after navigating
+  document.querySelectorAll('#sidebar .brand, #sidebar .nav a').forEach(a=> a.addEventListener('click', closeNav));
 }
+function closeNav(){ document.getElementById('sidebar').classList.remove('open'); document.body.classList.remove('nav-open'); }
+function toggleNav(){ document.getElementById('sidebar').classList.toggle('open'); document.body.classList.toggle('nav-open'); }
 
 function renderTopbar(){
   const t=document.getElementById('topbar');
   t.innerHTML=`
-    <button class="tbtn" id="menu-toggle" style="display:none">${ICON('menu')}</button>
+    <button class="tbtn menu-toggle" id="menu-toggle" title="Menu">${ICON('menu')}</button>
+    <a class="tbtn home-btn" href="#/" id="home-btn" title="Command Center">${ICON('grid')}</a>
     <div class="search">
       <span class="si">${ICON('search')}</span>
       <input id="global-search" placeholder="Search policies, SOPs, people, change requests…" autocomplete="off"/>
@@ -263,6 +268,14 @@ function renderTopbar(){
   document.addEventListener('click', ()=> qcm.classList.remove('open'));
   const gs=document.getElementById('global-search');
   gs.onkeydown=(e)=>{ if(e.key==='Enter' && gs.value.trim()){ sessionStorage.setItem('q',gs.value.trim()); go('#/search'); } };
+  const mt=document.getElementById('menu-toggle');
+  if(mt) mt.onclick=(e)=>{ e.stopPropagation(); toggleNav(); };
+  // tap outside the drawer (on mobile) closes it
+  document.addEventListener('click',(e)=>{
+    if(!document.body.classList.contains('nav-open')) return;
+    const sb=document.getElementById('sidebar');
+    if(sb && !sb.contains(e.target) && !e.target.closest('#menu-toggle')) closeNav();
+  });
 }
 
 async function toggleTheme(){
